@@ -189,49 +189,18 @@ public class ArcProgress extends View
     @Override
     protected void onDraw(Canvas canvas)
     {
-        //辅助线
-        //        canvas.drawRect(mArcRectF, mPaint);
-        //        canvas.drawRect(mRectF, mPaint);
-        //        canvas.drawLine(mRectF.left + mRectFSize / 2, 0, mRectF.left + mRectFSize / 2, mRectFSize, mPaint);
-        //        canvas.drawLine(mRectF.left, mRectFSize / 2, mRectF.left + mRectFSize, mRectFSize / 2, mPaint);
-
         canvas.rotate(270, mArcCenter.x, mArcCenter.y);
 
         canvas.drawArc(mArcRectF, mStartAngle, mSweepAngle, false, mBackPaint);
         canvas.drawArc(mArcRectF, mStartAngle, mSweepAngle * (mProgress * 1f / mMaxProgress), false, mFrontPaint);
 
-        //        drawDialPoint(canvas, , mDialPaint);
-
         mDialPoints.clear();
         mDialTextPoints.clear();
-        //开始的点
-        //        float startX = mArcCenter.x + mRectFSize / 2 - mBroadWidth;
-        //        float startY = mArcCenter.y;
-        //        mDialPoints.add(new DialPoint(startX, startY));
 
         setDialNumber(mDialNumber);
-        //结束的点
-        //        double endY = mArcCenter.y + mArcRadius * Math.sin(Math.PI * mSweepAngle / 180);
-        //        double endX = mArcCenter.x + mArcRadius * Math.cos(Math.PI * mSweepAngle / 180);
-        //        mDialPoints.add(new DialPoint((float) endX, (float) endY));
-
-        //画圆心
-        //        drawDialPoint(canvas, new DialPoint(mArcCenter.x, mArcCenter.y), mDialPaint);
-
-        //        drawDialPoint(canvas, new DialPoint((float) endX, (float) endY), mDialPaint);
-
-        //画刻度点
         drawDialPoints(canvas, mDialPaint);
         //画刻度文本
         drawDialTexts(canvas, mPaint, new String[]{"12", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"});
-        //        drawDialText(canvas,mDialPoints.get(0),mPaint);
-        //        drawDialText(canvas,mDialPoints.get(1),mPaint);
-        //        drawDialText(canvas,mDialPoints.get(2),mPaint);
-        //        drawDialText(canvas, new DialPoint(startX, startY), mPaint, 90f);
-        //        drawDialText(canvas, mDialPoints.get(0), mPaint, mAvgAngle + 90);
-
-        //        canvas.drawText("123", mArcCenter.x, mArcCenter.y, mPaint);
-        //        drawDialTexts(canvas, mPaint);
     }
 
     private void drawDialPoint(Canvas canvas, DialPoint point, Paint paint)
@@ -284,30 +253,11 @@ public class ArcProgress extends View
      */
     private void drawDialText(Canvas canvas, DialPoint point, Paint paint, String text)
     {
-        //        float length = mArcRadius + mBackStroke;
-        //        canvas.rotate(rotateAngle, mArcCenter.x, mArcCenter.y);
-        //        //        canvas.translate(-avg, 0);
-        //        canvas.translate((float) -(length * Math.cos(Math.PI * (mAvgAngle) / 180)),
-        //                (float) -(length * Math.sin(Math.PI * (mAvgAngle) / 180)));
-        //        canvas.drawText("123", mArcCenter.x, mArcCenter.y, paint);
         int index = mDialTextPoints.indexOf(point);
         int save = canvas.save();
         canvas.rotate(90 + index * mAvgAngle, point.x, point.y);
         canvas.drawText(text, point.x, point.y, paint);
-        //        Log.w(TAG, "index:   " + index);
         canvas.restoreToCount(save);
-
-        //        try
-        //        {
-        //            Path path = new Path();
-        //            path.moveTo(mDialPoints.get(mDialPoints.indexOf(point)).x, mDialPoints.get(mDialPoints.indexOf(point)).y);
-        //            path.lineTo(mDialPoints.get(mDialPoints.indexOf(point)).x, mDialPoints.get(mDialPoints.indexOf(point)).y);
-        //            canvas.drawTextOnPath("123", path, 0, -70, paint);
-        //        } catch (Exception e)
-        //        {
-        //        }
-
-
     }
 
     /**
