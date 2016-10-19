@@ -9,12 +9,13 @@
     <top.genylife.one.widget.ArcProgress
         android:id="@+id/progress"
         android:layout_width="match_parent"
-        android:layout_height="1000dp" />
+        android:layout_height="250dp" />
 
     <Button
         android:id="@+id/btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:visibility="invisible"
         android:text="123" />
 </RelativeLayout>

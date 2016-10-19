@@ -92,6 +92,9 @@ public class ArcProgress extends View
 
     private float mAvgAngle;
 
+    private float mDrawBackAngle = 0.5f;
+    private float mDrawFrontAngle = 0.5f;
+
     private int mMaxProgress;
     private int mProgress;
 
@@ -137,7 +140,7 @@ public class ArcProgress extends View
         mDialPaint = new Paint();
         mDialPaint.setColor(Color.BLACK);
         mDialPaint.setAntiAlias(true);
-        mDialPaint.setStrokeWidth(mFrontStroke - 6);
+        mDialPaint.setStrokeWidth(mFrontStroke / 2);
         mDialPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         mDialPaint.setStrokeCap(Paint.Cap.ROUND);
 
@@ -190,17 +193,31 @@ public class ArcProgress extends View
     protected void onDraw(Canvas canvas)
     {
         canvas.rotate(270, mArcCenter.x, mArcCenter.y);
+        float angle = mDrawBackAngle += 2;
+        if (angle <= mSweepAngle)
+            canvas.drawArc(mArcRectF, mStartAngle, angle, false, mBackPaint);
+        else
+        {
+            canvas.drawArc(mArcRectF, mStartAngle, mSweepAngle, false, mBackPaint);
+            angle = mDrawFrontAngle += 2;
+            if (angle <= mSweepAngle * (mProgress * 1f / mMaxProgress))
+                canvas.drawArc(mArcRectF, mStartAngle, angle, false, mFrontPaint);
+            else
+                canvas.drawArc(mArcRectF, mStartAngle, mSweepAngle * (mProgress * 1f / mMaxProgress), false, mFrontPaint);
+            mDialPoints.clear();
+            mDialTextPoints.clear();
 
-        canvas.drawArc(mArcRectF, mStartAngle, mSweepAngle, false, mBackPaint);
-        canvas.drawArc(mArcRectF, mStartAngle, mSweepAngle * (mProgress * 1f / mMaxProgress), false, mFrontPaint);
+            setDialNumber(mDialNumber);
+            drawDialPoints(canvas, mDialPaint);
+            //画刻度文本
+            drawDialTexts(canvas, mPaint, new String[]{"12", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"});
+        }
+        invalidate();
 
-        mDialPoints.clear();
-        mDialTextPoints.clear();
+        //        canvas.drawArc(mArcRectF, mStartAngle, mSweepAngle * (mProgress * 1f / mMaxProgress), false, mFrontPaint);
+        //
+        //        invalidate();
 
-        setDialNumber(mDialNumber);
-        drawDialPoints(canvas, mDialPaint);
-        //画刻度文本
-        drawDialTexts(canvas, mPaint, new String[]{"12", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"});
     }
 
     private void drawDialPoint(Canvas canvas, DialPoint point, Paint paint)
@@ -225,6 +242,17 @@ public class ArcProgress extends View
             mDialPoints.add(point);
             double ty = mArcCenter.y + (mArcRadius + 20) * Math.sin(Math.PI * (mAvgAngle * i) / 180);
             double tx = mArcCenter.x + (mArcRadius + 20) * Math.cos(Math.PI * (mAvgAngle * i) / 180);
+            DialPoint tPoint = new DialPoint((float) tx, (float) ty);
+            mDialTextPoints.add(tPoint);
+        }
+        if (mSweepAngle < 360)
+        {
+            double y = mArcCenter.y + mArcRadius * Math.sin(Math.PI * mSweepAngle / 180);
+            double x = mArcCenter.x + mArcRadius * Math.cos(Math.PI * mSweepAngle / 180);
+            DialPoint point = new DialPoint((float) x, (float) y);
+            mDialPoints.add(point);
+            double ty = mArcCenter.y + (mArcRadius + 20) * Math.sin(Math.PI * mSweepAngle / 180);
+            double tx = mArcCenter.x + (mArcRadius + 20) * Math.cos(Math.PI * mSweepAngle / 180);
             DialPoint tPoint = new DialPoint((float) tx, (float) ty);
             mDialTextPoints.add(tPoint);
         }
@@ -270,7 +298,10 @@ public class ArcProgress extends View
     {
         for (int i = 0; i < mDialTextPoints.size(); i++)
         {
-            drawDialText(canvas, mDialTextPoints.get(i), paint, texts[i]);
+            if (mSweepAngle < 360)
+                drawDialText(canvas, mDialTextPoints.get(i), paint, texts[i % (mDialTextPoints.size() - 1)]);
+            else
+                drawDialText(canvas, mDialTextPoints.get(i), paint, texts[i % (mDialTextPoints.size())]);
         }
     }
 
