@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
@@ -9,13 +10,21 @@
     <top.genylife.one.widget.ArcProgress
         android:id="@+id/progress"
         android:layout_width="match_parent"
-        android:layout_height="250dp" />
+        android:layout_height="250dp"
+        app:arc_backColor="#000"
+        app:arc_backStroke="10dp"
+        app:arc_dialNumber="6"
+        app:arc_dialPointColor="#0f0"
+        app:arc_dialStrokeWidth="10dp"
+        app:arc_dialTextColor="#f00"
+        app:arc_dialTextSize="20sp"
+        app:arc_frontColor="#00f"
+        app:arc_frontStroke="10dp" />
 
     <Button
         android:id="@+id/btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:visibility="invisible"
         android:text="123" />
 </RelativeLayout>

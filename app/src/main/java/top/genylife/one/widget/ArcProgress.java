@@ -1,6 +1,8 @@
 package top.genylife.one.widget;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,6 +14,8 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
 
+import top.genylife.one.R;
+
 /**
  * Created by wanqi on 2016/10/18.
  *
@@ -21,6 +25,7 @@ import java.util.List;
 public class ArcProgress extends View
 {
     private static final String TAG = "ArcProgress";
+
     /**
      * 进度环背景色画笔
      */
@@ -28,7 +33,23 @@ public class ArcProgress extends View
     /**
      * 进度环背景Stroke,by px
      */
-    private int mBackStroke;
+    private float mBackStroke;
+    /**
+     * 进度环背景颜色
+     */
+    private int mBackColor;
+    /**
+     * 进度环前景颜色
+     */
+    private int mFrontColor;
+    /**
+     * 刻度文本的颜色
+     */
+    private int mDialTextColor;
+    /**
+     * 刻度点颜色
+     */
+    private int mDialPointColor;
     /**
      * 进度环前景色画笔
      */
@@ -36,7 +57,7 @@ public class ArcProgress extends View
     /**
      * 进度环前景Stroke,by px
      */
-    private int mFrontStroke;
+    private float mFrontStroke;
     /**
      * 绘制进度环的位置
      */
@@ -81,22 +102,41 @@ public class ArcProgress extends View
      * 进度环刻度点的画笔
      */
     private Paint mDialPaint;
+    /**
+     * 刻度点StrokeWidth
+     */
+    private float mDialStrokeWidth;
 
     /**
      * 绘制区域（正方形）的Size
      */
     private int mRectFSize;
-
-
-    private Paint mPaint;
-
+    /**
+     * 文本绘制的画笔
+     */
+    private Paint mTextPaint;
+    /**
+     * 绘制文本的Size
+     */
+    private float mDialTextSize;
+    /**
+     * 每一个刻度的平均角度
+     */
     private float mAvgAngle;
-
+    /**
+     *
+     */
     private float mDrawBackAngle = 0.5f;
     private float mDrawFrontAngle = 0.5f;
-
+    /**
+     * 进度最大值
+     */
     private int mMaxProgress;
+    /**
+     * 当前进度
+     */
     private int mProgress;
+    private List<String> mDialTexts;
 
     public ArcProgress(Context context)
     {
@@ -111,6 +151,12 @@ public class ArcProgress extends View
     public ArcProgress(Context context, AttributeSet attrs, int defStyleAttr)
     {
         super(context, attrs, defStyleAttr);
+
+        TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.ArcProgress, defStyleAttr, 0);
+        initAttributeSet(a);
+        a.recycle();
+
+
         mArcRectF = new RectF();
 
         mArcCenter = new Point();
@@ -120,50 +166,83 @@ public class ArcProgress extends View
         mDialPoints = new ArrayList<>();
         mDialTextPoints = new ArrayList<>();
 
-        mBackStroke = 30;
-        mFrontStroke = 20;
+        mBackStroke = 10;
+        mFrontStroke = 10;
 
         mBackPaint = new Paint();
-        mBackPaint.setColor(Color.parseColor("#E48680"));
+        mBackPaint.setColor(mBackColor);
         mBackPaint.setAntiAlias(true);
         mBackPaint.setStrokeWidth(mBackStroke);
         mBackPaint.setStyle(Paint.Style.STROKE);
         mBackPaint.setStrokeCap(Paint.Cap.ROUND);
 
         mFrontPaint = new Paint();
-        mFrontPaint.setColor(Color.parseColor("#5CC7D8"));
+        mFrontPaint.setColor(mFrontColor);
         mFrontPaint.setAntiAlias(true);
         mFrontPaint.setStrokeWidth(mFrontStroke);
         mFrontPaint.setStyle(Paint.Style.STROKE);
         mFrontPaint.setStrokeCap(Paint.Cap.ROUND);
 
         mDialPaint = new Paint();
-        mDialPaint.setColor(Color.BLACK);
+        mDialPaint.setColor(mDialPointColor);
         mDialPaint.setAntiAlias(true);
-        mDialPaint.setStrokeWidth(mFrontStroke / 2);
+        mDialPaint.setStrokeWidth(mDialStrokeWidth);
         mDialPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         mDialPaint.setStrokeCap(Paint.Cap.ROUND);
 
-        mPaint = new Paint();
-        mPaint.setColor(Color.RED);
-        mPaint.setAntiAlias(true);
-        mPaint.setStrokeWidth(1);
-        mPaint.setTextSize(20);
-        mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setTextAlign(Paint.Align.CENTER);
+        mTextPaint = new Paint();
+        mTextPaint.setColor(mDialTextColor);
+        mTextPaint.setAntiAlias(true);
+        mTextPaint.setStrokeWidth(1);
+        mTextPaint.setTextSize(mDialTextSize);
+        mTextPaint.setStyle(Paint.Style.FILL);
+        mTextPaint.setTextAlign(Paint.Align.CENTER);
 
         mBroadWidth = 70;
 
-        mStartAngle = 0;
-        mSweepAngle = 360;
+        //        mStartAngle = 0;
+        //        mSweepAngle = 270;
 
-        mDialNumber = 12;
-        //        setDialNumber(6);
-        mAvgAngle = 0;
+        //        mDialNumber = 5;
+        if (mSweepAngle > 360)
+        {
+            mSweepAngle = 360;
+        }
+        mAvgAngle = mSweepAngle / mDialNumber;
+        if (mSweepAngle < 360)
+        {
+            mDialNumber++;
+        }
 
-        mMaxProgress = 60;
-        mProgress = 0;
+        mDialTexts = new ArrayList<>(mDialNumber + 1);
 
+        //        mMaxProgress = 60;
+        //        mProgress = 0;
+
+    }
+
+    private void initAttributeSet(TypedArray typedArray)
+    {
+        mBackColor = typedArray.getColor(R.styleable.ArcProgress_arc_backColor,
+                getResources().getColor(R.color.arcProgressDefBackColor));
+        mFrontColor = typedArray.getColor(R.styleable.ArcProgress_arc_frontColor,
+                getResources().getColor(R.color.arcProgressDefFrontColor));
+
+        mDialPointColor = typedArray.getColor(R.styleable.ArcProgress_arc_dialPointColor, Color.GRAY);
+        mDialTextColor = typedArray.getColor(R.styleable.ArcProgress_arc_dialTextColor, Color.GRAY);
+
+        mBackStroke = typedArray.getDimension(R.styleable.ArcProgress_arc_backStroke, 30);
+        mFrontStroke = typedArray.getDimension(R.styleable.ArcProgress_arc_frontStroke, 20);
+
+        mStartAngle = typedArray.getInt(R.styleable.ArcProgress_arc_startAngle, 90 + 45);
+        mSweepAngle = typedArray.getInt(R.styleable.ArcProgress_arc_sweepAngle, 270);
+
+        mMaxProgress = typedArray.getInt(R.styleable.ArcProgress_arc_maxProgress, 100);
+        mProgress = typedArray.getInt(R.styleable.ArcProgress_arc_progress, 0);
+
+        mDialNumber = typedArray.getInt(R.styleable.ArcProgress_arc_dialNumber, 0);
+        mDialStrokeWidth = typedArray.getDimension(R.styleable.ArcProgress_arc_dialStrokeWidth, 15);
+        mDialTextSize = typedArray.getDimension(R.styleable.ArcProgress_arc_dialTextSize, 20);
     }
 
     @Override
@@ -192,8 +271,8 @@ public class ArcProgress extends View
     @Override
     protected void onDraw(Canvas canvas)
     {
-        canvas.rotate(270, mArcCenter.x, mArcCenter.y);
-        float angle = mDrawBackAngle += 2;
+        //        canvas.rotate(mStartAngle, mArcCenter.x, mArcCenter.y);
+        float angle = mDrawBackAngle += 5;
         if (angle <= mSweepAngle)
             canvas.drawArc(mArcRectF, mStartAngle, angle, false, mBackPaint);
         else
@@ -207,17 +286,13 @@ public class ArcProgress extends View
             mDialPoints.clear();
             mDialTextPoints.clear();
 
-            setDialNumber(mDialNumber);
+            genDialPoint();
+            canvas.rotate(mStartAngle, mArcCenter.x, mArcCenter.y);
             drawDialPoints(canvas, mDialPaint);
             //画刻度文本
-            drawDialTexts(canvas, mPaint, new String[]{"12", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"});
+            drawDialTexts(canvas, mTextPaint, mDialTexts);
         }
         invalidate();
-
-        //        canvas.drawArc(mArcRectF, mStartAngle, mSweepAngle * (mProgress * 1f / mMaxProgress), false, mFrontPaint);
-        //
-        //        invalidate();
-
     }
 
     private void drawDialPoint(Canvas canvas, DialPoint point, Paint paint)
@@ -226,15 +301,71 @@ public class ArcProgress extends View
     }
 
     /**
-     * 生成刻度点和文本锚点的位置
+     * 设置刻度点对应的文本
      *
-     * @param num 需要绘制的刻度数量
+     * @param textList
      */
-    public void setDialNumber(int num)
+    public void setDialTexts(List<String> textList)
+    {
+        mDialTexts = textList;
+        invalidate();
+    }
+
+    /**
+     * 设置可读点的数量
+     *
+     * @param num
+     */
+    public void setDialPointNum(int num)
     {
         mDialNumber = num;
-        mAvgAngle = mSweepAngle / (num);
-        for (int i = 0; i < num; i++)
+        mAvgAngle = mSweepAngle / mDialNumber;
+        if (mSweepAngle < 360)
+        {
+            mDialNumber++;
+        }
+        genDialPoint();
+        invalidate();
+    }
+
+    /**
+     * 设置进度，通过角度
+     *
+     * @param angle
+     */
+    public void setProgressAngle(float angle)
+    {
+        int progress = (int) (mMaxProgress * angle / mSweepAngle);
+        setProgress(progress);
+    }
+
+    /**
+     * 设置进度，通过刻度,刻度从0开始
+     *
+     * @param dial
+     */
+    public void setDialProgress(int dial)
+    {
+        int tempDial = mDialNumber;
+        if (mSweepAngle < 360)
+            tempDial = mDialNumber - 1;
+        if (dial >= tempDial)
+        {
+            setProgressAngle(tempDial * mAvgAngle);
+        } else
+        {
+            setProgressAngle(dial * mAvgAngle);
+        }
+    }
+
+    /**
+     * 生成刻度点和文本锚点的位置
+     */
+    private void genDialPoint()
+    {
+        mDialTextPoints.clear();
+        mDialPoints.clear();
+        for (int i = 0; i < mDialNumber; i++)
         {
             double y = mArcCenter.y + mArcRadius * Math.sin(Math.PI * (mAvgAngle * i) / 180);
             double x = mArcCenter.x + mArcRadius * Math.cos(Math.PI * (mAvgAngle * i) / 180);
@@ -242,17 +373,6 @@ public class ArcProgress extends View
             mDialPoints.add(point);
             double ty = mArcCenter.y + (mArcRadius + 20) * Math.sin(Math.PI * (mAvgAngle * i) / 180);
             double tx = mArcCenter.x + (mArcRadius + 20) * Math.cos(Math.PI * (mAvgAngle * i) / 180);
-            DialPoint tPoint = new DialPoint((float) tx, (float) ty);
-            mDialTextPoints.add(tPoint);
-        }
-        if (mSweepAngle < 360)
-        {
-            double y = mArcCenter.y + mArcRadius * Math.sin(Math.PI * mSweepAngle / 180);
-            double x = mArcCenter.x + mArcRadius * Math.cos(Math.PI * mSweepAngle / 180);
-            DialPoint point = new DialPoint((float) x, (float) y);
-            mDialPoints.add(point);
-            double ty = mArcCenter.y + (mArcRadius + 20) * Math.sin(Math.PI * mSweepAngle / 180);
-            double tx = mArcCenter.x + (mArcRadius + 20) * Math.cos(Math.PI * mSweepAngle / 180);
             DialPoint tPoint = new DialPoint((float) tx, (float) ty);
             mDialTextPoints.add(tPoint);
         }
@@ -294,14 +414,27 @@ public class ArcProgress extends View
      * @param canvas
      * @param paint
      */
-    private void drawDialTexts(Canvas canvas, Paint paint, String[] texts)
+    private void drawDialTexts(Canvas canvas, Paint paint, List<String> texts)
     {
         for (int i = 0; i < mDialTextPoints.size(); i++)
         {
-            if (mSweepAngle < 360)
-                drawDialText(canvas, mDialTextPoints.get(i), paint, texts[i % (mDialTextPoints.size() - 1)]);
-            else
-                drawDialText(canvas, mDialTextPoints.get(i), paint, texts[i % (mDialTextPoints.size())]);
+            try
+            {
+                if (mSweepAngle < 360)
+                {
+                    try
+                    {
+                        drawDialText(canvas, mDialTextPoints.get(i), paint, texts.get(i % (mDialTextPoints.size())));
+                    } catch (IndexOutOfBoundsException e)
+                    {
+                        drawDialText(canvas, mDialTextPoints.get(i), paint, texts.get(i % (mDialTextPoints.size() - 1)));
+                    }
+                } else
+                    drawDialText(canvas, mDialTextPoints.get(i), paint, texts.get(i % (mDialTextPoints.size())));
+            } catch (IndexOutOfBoundsException e)
+            {
+
+            }
         }
     }
 
@@ -314,6 +447,20 @@ public class ArcProgress extends View
     {
         mProgress = progress;
         invalidate();
+    }
+
+    private float dp2px(float dp)
+    {
+        Resources resources = getResources();
+        float density = resources.getDisplayMetrics().density;
+        return dp * density + 0.5f;
+    }
+
+    private float sp2px(float sp)
+    {
+        Resources resources = getResources();
+        float density = resources.getDisplayMetrics().scaledDensity;
+        return sp * density + 0.5f;
     }
 
     class DialPoint

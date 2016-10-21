@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="ArcProgress">
+        <attr name="arc_backStroke" format="dimension|reference" />
+        <attr name="arc_frontStroke" format="dimension|reference" />
+
+        <attr name="arc_backColor" format="color|reference" />
+        <attr name="arc_frontColor" format="color|reference" />
+
+        <attr name="arc_dialPointColor" format="color|reference" />
+        <attr name="arc_dialTextColor" format="color|reference" />
+
+        <attr name="arc_startAngle" format="integer" />
+        <attr name="arc_sweepAngle" format="integer" />
+
+        <attr name="arc_dialNumber" format="integer" />
+        <attr name="arc_dialStrokeWidth" format="dimension|reference" />
+        <attr name="arc_dialTextSize" format="dimension|reference" />
+
+        <attr name="arc_maxProgress" format="integer" />
+        <attr name="arc_progress" format="integer" />
+    </declare-styleable>
+
+</resources>
